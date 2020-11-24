@@ -1,14 +1,18 @@
+
+
 #include "Character.h"
 
 
 #include <iostream>
+#include <string>
 #include <sstream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include <queue>
+#include <stack>
 
-//check to commit
+
+
 using namespace std;
 int maxRoundGiven; //max round according to input
 int currentRound;
@@ -18,47 +22,55 @@ int wizards_special=50;
 vector<Character> community_1;
 vector<Character> community_2;
 queue < pair < pair < string,string > ,string > > roundInfo; //pair<(attacker_name,defender_name),Ifspecial>
-vector< vector< string > > all_input;
-void place_inputs();
 void special_wizards(vector<Character> &community,Character &character);
 void special_elves(vector<Character> &community,Character &character);
 bool special_dwarfs(Character &character);
-bool is_war_end();
+bool is_war_end(ofstream& outFile);
 void one_round(Character &attacker,Character &defender,vector<Character> &teamA, vector<Character> &teamD,const string &ifSpecial);
-void war_begin();
+void war_begin(ofstream& outFile);
 bool turn_1;
+bool sort_for_char(Character &c1,Character &c2);
+vector<Character> sort_alph_order(vector<Character> &vec);
+
 stack<Character> lastKilled_1;
 stack<Character> lastKilled_2;
+void deneme_print(ofstream& outFile, queue<string> com1, queue<string> com2);
 
 
-void deneme_print() {
-    for(int i=0;i<5;i++) {
-        cout << community_1[i].name << " ";
-        for(int n=0;n<currentRound+1;n++) {
-            cout <<  community_1[i].healthHistory[n] << " ";
-        }
-        cout <<endl;
-
-    }
-    for(int i=0;i<5;i++) {
-        cout << community_2[i].name << " ";
-        for(int n=0;n<currentRound+1;n++) {
-            cout << community_2[i].healthHistory[n] << " ";
-        }
-        cout <<endl;
-
-    }
-
-}
 
 int main(int argc, char* argv[]) {
+    queue<string> com_1_given_order;
+    queue<string> com_2_given_order;
+
+
+    if (argc != 3) {
+        // cerr is used for errors
+        cerr << "Run the code with the following command: g++ main.cpp Character.h Character.cpp -std=c++11 -o project1.out ./project1.out inputFile outputFile" << endl;
+        return 1;
+    }
+    // Open the input and output files, check for failures
+    ifstream inputFile(argv[1]);
+    if (!inputFile) { // operator! is synonymous to .fail(), checking if there was a failure
+        cerr << "There was a problem opening \"" << argv[1] << "\" as input file" << endl;
+        return 1;
+    }
+
+    ofstream outputFile(argv[2]);
+    // outputFile.open("output.txt");
+    if (!outputFile) {
+        cerr << "There was a problem opening \"" << argv[2] << "\" as output file" << endl;
+        return 1;
+    }
+
+
+    vector< vector< string > > all_input;
     string input;
     int currentlineNumber=0;
-    ifstream inputfile ("/Users/yselek14/Desktop/project1-yagmurse-master/testcases/inputs/input_7.txt");
+    // ifstream inputfile ("/Users/yselek14/Desktop/project1-yagmurse-master/testcases/inputs/input_7.txt");
     //store input line by line to global vector all_input
-    if (inputfile.is_open())
+    if (inputFile.is_open())
     {
-        while (getline (inputfile,input))
+        while (getline (inputFile,input))
         {
             vector<string> currentLine;
             istringstream iss(input);
@@ -77,28 +89,53 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        inputfile.close();
+        inputFile.close();
     }
     else { cout << "Unable to open input file"; }
-    place_inputs();
-    war_begin();
-    deneme_print();
+    //place_inputs();
+    for(int i=0;i<10;i++) {
+        vector<string> tmp=all_input[i];
+        Character tmpChar=*new Character(tmp[0],tmp[1],stoi(tmp[2]),stoi(tmp[3]),stoi(tmp[4]),maxRoundGiven);
+        if (i<5) {
+            community_1.push_back(tmpChar);
+            com_1_given_order.push(tmp[0]);
+        }
+        else {
+            community_2.push_back(tmpChar);
+            com_2_given_order.push(tmp[0]);
+        }
+    }
+    //record attacks into attackInfo
+    int remaining=all_input.size();
+    for(int i=10;i<remaining;i++) {
+        pair<string,string> competitors=make_pair(all_input[i][0],all_input[i][1]);
+        pair<pair<string,string>,string> round=make_pair(competitors,all_input[i][2]);
+        roundInfo.push(round);
+    }
+    community_1=sort_alph_order(community_1);
+    community_2=sort_alph_order(community_2);
+
+
+
+    war_begin(outputFile);
+    deneme_print(outputFile,com_1_given_order,com_2_given_order);
     return 0;
 }
 
-void war_begin() {
+void war_begin(ofstream& outFile) {
     bool _is_war_end;
     currentRound=0;
     for(int i=0;i<5;i++) {
         community_1[i].healthHistory[0]=community_1[i].remainingHealth;
         community_2[i].healthHistory[0]=community_2[i].remainingHealth;
     }
-    while(!(is_war_end()) && ! roundInfo.empty() ) {
-        cout << currentRound <<endl;
-        pair<pair<string,string>,string> currentPair=roundInfo.front();
-        roundInfo.pop();
+    turn_1=true;
+    while(!(is_war_end(outFile)) && ! roundInfo.empty() ) {
         currentRound++;
         turn_1=currentRound%2;
+        pair<pair<string,string>,string> currentPair=roundInfo.front();
+        roundInfo.pop();
+
         string attackerStr=currentPair.first.first;
         string defenderStr=currentPair.first.second;
         string special=currentPair.second;
@@ -115,6 +152,26 @@ void war_begin() {
                 com2int=i;
             if(community_2[i].name==defenderStr)
                 com2int=i;
+        }
+        if(!community_1[com1int].isAlive) {
+            for(int i=1;i<5;i++) {
+                int next=com1int+i;
+                (next==5) ? (next=5) : (next=next%5);
+                if(community_1[next].isAlive) {
+                    com1int=next;
+                    break;
+                }
+            }
+        }
+        if(!community_2[com2int].isAlive) {
+            for(int i=1;i<5;i++) {
+                int next=com2int+i;
+                (next==5) ? (next=5) : (next=next%5);
+                if(community_2[next].isAlive) {
+                    com2int=next;
+                    break;
+                }
+            }
         }
         if(turn_1) {
             one_round(community_1[com1int],community_2[com2int],community_1,community_2,special);
@@ -133,15 +190,15 @@ void one_round(Character &attacker, Character &defender, vector<Character> &team
         else if(attacker.type=="Wizards") {
             special_wizards(teamA,attacker);
         }
-        if(defender.operator<(attacker)) {
+        if(defender.defense<attacker.attack) {
             defender.remainingHealth-=attacker.attack-defender.defense;
         }
     }
-    else if (ifSpecial=="SPECIAL" && special_dwarfs(attacker) && defender.defense<2*attacker.attack) {
-        defender.remainingHealth-= (2 * attacker.attack) -defender.defense;
+    else if (ifSpecial=="SPECIAL" && special_dwarfs(attacker) && defender.defense<attacker.attack) {
+        defender.remainingHealth-= 2*(attacker.attack - defender.defense);
     }
     else {
-        if(defender.operator<(attacker)) {
+        if(defender.defense<attacker.attack) {
             defender.remainingHealth-=attacker.attack-defender.defense;
         }
     }
@@ -149,6 +206,7 @@ void one_round(Character &attacker, Character &defender, vector<Character> &team
         (turn_1) ? (lastKilled_2.push(defender)) : (lastKilled_1.push(defender));
         defender.isAlive=false;
         defender.remainingHealth=0;
+        defender.nRoundsSinceSpecial=0;
     }
 
     for(int i=0;i<5;i++) {
@@ -179,6 +237,8 @@ bool special_dwarfs(Character &character) {
     if(character.type=="Dwarfs" && (character.nRoundsSinceSpecial>=dwarfs_special)) {
         character.nRoundsSinceSpecial=0;
         return true;
+
+
     }
     else {
         return false;
@@ -209,75 +269,110 @@ void special_wizards(vector<Character> &community,Character &character) {
     }
 }
 
-bool is_war_end() {
-    int deathNotHobbit=0;
-    bool isHobbitDeath=false;
-    if(turn_1) {
-        for (int i = 0; i < 5; i++) {
-            if (community_2[i].type=="Hobbits") {
-                if( !community_2[i].isAlive)
-                    isHobbitDeath=true;
-            }
-            else if(!community_2[i].isAlive)
-                deathNotHobbit++;
+bool is_war_end(ofstream& outFile) {
+    bool result=false;
+    int deathNotHobbit1=0;
+    int deathNotHobbit2=0;
+    bool isHobbitDeath1=false;
+    bool isHobbitDeath2=false;
+    for (int i = 0; i < 5; i++) {
+        if (community_2[i].type=="Hobbits") {
+            if( !community_2[i].isAlive)
+                isHobbitDeath2=true;
         }
-        if(isHobbitDeath || deathNotHobbit==4) {
-            cout << "community 1 won" <<endl;
-            return true;
-        }
+        else if(!community_2[i].isAlive)
+            deathNotHobbit2++;
     }
-    else {
-        for (int i = 0; i < 5; i++) {
-            if (community_1[i].type=="Hobbits") {
-                if( !community_1[i].isAlive)
-                    isHobbitDeath=true;
-            }
-            else if(!community_1[i].isAlive)
-                deathNotHobbit++;
-        }
-        if(isHobbitDeath || deathNotHobbit==4) {
-            cout << "community 2 won" <<endl;
-            return true;
-        }
+    if(isHobbitDeath2 || deathNotHobbit2==4) {
+        outFile << "Community-1" <<endl;
+        outFile << currentRound <<endl;
+        result = true;
     }
+
+    for (int i = 0; i < 5; i++) {
+        if (community_1[i].type=="Hobbits") {
+            if( !community_1[i].isAlive)
+                isHobbitDeath1=true;
+        }
+        else if(!community_1[i].isAlive)
+            deathNotHobbit1++;
+    }
+    if(isHobbitDeath1 || deathNotHobbit1==4) {
+        outFile << "Community-2" <<endl;
+        outFile << currentRound <<endl;
+        result=true;
+    }
+
     if(currentRound==maxRoundGiven) {
-        cout << "Draw" <<endl;
-        cout << currentRound <<endl;
-        return true;
+        outFile << currentRound <<endl;
+        outFile << "Draw" <<endl;
+        outFile << currentRound <<endl;
+        result=true;
+    }
+    if(result) {
+        int totalDied=deathNotHobbit1+deathNotHobbit2;
+        if(isHobbitDeath1) {
+            totalDied++;
+        }
+        if(isHobbitDeath2) {
+            totalDied++;
+        }
+        outFile << totalDied <<endl;
     }
 
-
-    return false;
+    return result;
 
 }
 
-void place_inputs() {
-    //record 5 chars into community_1 and following 5 chars into community_2
-    Character tmpChar=*new Character("","",0,0,0,0);
-    for(int i=0;i<10;i++) {
-        vector<string> tmp=all_input[i];
-        Character toAssign=*new Character(tmp[0],tmp[1],stoi(tmp[2]),stoi(tmp[3]),stoi(tmp[4]),maxRoundGiven);
-        tmpChar=toAssign;
-        if (i<5)
-            community_1.push_back(tmpChar);
-        else
-            community_2.push_back(tmpChar);
-    }
-    //record attacks into attackInfo
-    int remaining=all_input.size();
-    for(int i=10;i<remaining;i++) {
-        string attacker=all_input[i][0];
-        string defender=all_input[i][1];
-        string special=all_input[i][2];
-        pair<string,string> competitors=make_pair(attacker,defender);
-        pair<pair<string,string>,string> round=make_pair(competitors,special);
-        roundInfo.push(round);
-    }
+
+bool sort_for_char(Character &c1,Character &c2) {
+    return c1<c2;
 }
 
+vector<Character> sort_alph_order(vector<Character> &vec){
+    int size=vec.size();
+    sort(vec.begin(),vec.end(),sort_for_char);
+    return vec;
+}
+
+void deneme_print(ofstream& outFile,queue<string> com1, queue<string> com2) {
+    for(int i=0;i<5;i++) {
+        string s=com1.front();
+        com1.pop();
+        int number=0;
+        for(int m=0;m<5;m++) {
+            if(community_1[m].name==s) {
+                number=m;
+                break;
+            }
+        }
+        outFile << community_1[number].name << " ";
+        for(int n=0;n<currentRound+1;n++) {
+            outFile <<  community_1[number].healthHistory[n] << " ";
+        }
+        outFile <<endl;
+
+    }
+    for(int i=0;i<5;i++) {
+        string s=com2.front();
+        com2.pop();
+        int number=0;
+        for(int m=0;m<5;m++) {
+            if(community_2[m].name==s) {
+                number=m;
+                break;
+            }
+        }
+        outFile << community_2[number].name << " ";
+        for(int n=0;n<currentRound+1;n++) {
+            outFile <<  community_2[number].healthHistory[n] << " ";
+        }
+        outFile <<endl;
+
+    }
 
 
-
+}
 
 
 

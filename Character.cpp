@@ -9,7 +9,9 @@ Character::Character(string _name, string _type, int _attack, int _defense, int 
     this->defense=_defense;
     this->remainingHealth=_remainingHealth;
     this->nMaxRounds=_nMaxRounds;
-    this->healthHistory=new int[_nMaxRounds+1];
+    this->nRoundsSinceSpecial=0;
+    this->isAlive= true;  
+    this->healthHistory = new int[_nMaxRounds+1];
 }
 
 //copy constructor

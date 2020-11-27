@@ -33,7 +33,7 @@ Character::Character(const Character& character) {
 
 }
 
-//= operator overloader Öylesine şimdilik
+//= operator overloader 
 Character& Character::operator=(const Character& character) {
     if(this==&character) {
         return *this;
@@ -53,8 +53,7 @@ Character& Character::operator=(const Character& character) {
     this->healthHistory = new int[n];
     for (int i = 0; i < n; ++i){
         this->healthHistory[i]=character.healthHistory[i];
-        // int m=*(character.healthHistory+i);
-        // *(this->healthHistory+i) = m; //DEĞİŞTİRDİN
+        
     }
     return *this;
 
@@ -69,7 +68,5 @@ bool Character::operator<(const Character& other) {
 Character::~Character() {
     if(this->healthHistory != NULL)
         delete[] healthHistory;
-    /* if (this->healthHistory != NULL) {
-         delete[] this->healthHistory;
-     }*/
+    
 }

@@ -2,7 +2,7 @@
 
 #include "Character.h"
 
-
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -23,7 +23,7 @@ vector<Character> community_1;
 vector<Character> community_2;
 queue < pair < pair < string,string > ,string > > roundInfo; //pair<(attacker_name,defender_name),Ifspecial>
 void special_wizards(vector<Character> &community,Character &character);
-void special_elves(vector<Character> &community,Character &character);
+void special_elves(vector<Character> &community,Character &chr);
 bool special_dwarfs(Character &character);
 bool is_war_end(ofstream& outFile);
 void one_round(Character &attacker,Character &defender,vector<Character> &teamA, vector<Character> &teamD,const string &ifSpecial);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 }
 
 void war_begin(ofstream& outFile) {
-    bool _is_war_end;
+    //bool _is_war_end;
     currentRound=0;
     for(int i=0;i<5;i++) {
         community_1[i].healthHistory[0]=community_1[i].remainingHealth;

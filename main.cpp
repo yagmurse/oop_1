@@ -1,5 +1,6 @@
 
-
+//Yagmur SELEK
+//Id: 2017400273
 #include "Character.h"
 
 #include <algorithm>
@@ -26,7 +27,7 @@ void special_wizards(vector<Character> &community,Character &character);
 void special_elves(vector<Character> &community,Character &chr);
 bool special_dwarfs(Character &character);
 bool is_war_end(ofstream& outFile);
-void one_round(Character &attacker,Character &defender,vector<Character> &teamA, vector<Character> &teamD,const string &ifSpecial);
+void one_round(Character &attacker,Character &defender,vector<Character> &teamA, vector<Character> &teamD,string &ifSpecial);
 void war_begin(ofstream& outFile);
 bool turn_1;
 bool sort_for_char(Character &c1,Character &c2);
@@ -183,7 +184,7 @@ void war_begin(ofstream& outFile) {
 
 }
 
-void one_round(Character &attacker, Character &defender, vector<Character> &teamA, vector<Character> &teamD, const string &ifSpecial) {
+void one_round(Character &attacker, Character &defender, vector<Character> &teamA, vector<Character> &teamD, string &ifSpecial) {
     if(ifSpecial=="SPECIAL" && attacker.type != "Dwarfs") {
         if(attacker.type=="Elves") {
             special_elves(teamA,attacker); }

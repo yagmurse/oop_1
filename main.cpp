@@ -39,6 +39,7 @@ void deneme_print(ofstream& outFile, queue<string> com1, queue<string> com2); //
 
 
 int main(int argc, char* argv[]) {
+    turn_1=true;
     queue<string> com_1_given_order;
     queue<string> com_2_given_order;
 
@@ -156,20 +157,42 @@ void war_begin(ofstream& outFile) {
         }
         //change the player if given player is not alive for community 1 and 2 respectively
         if(!community_1[com1int].isAlive) {
+            int tmp1=com1int;
+            int tmp2=0;
             for(int i=1;i<5;i++) {
                 int next=com1int+i;
-                (next==5) ? (next=5) : (next=next%5);
-                if(community_1[next].isAlive) {
+               if (next>=5)
+               {  tmp2++;
+               tmp2=com1int-tmp2;
+               if(tmp2<0) {break;}
+                   if(community_1[tmp2].isAlive) {
+                       com1int=tmp2;
+                       break;
+                   }
+
+               }
+               else if(community_1[next].isAlive) {
                     com1int=next;
                     break;
                 }
             }
         }
         if(!community_2[com2int].isAlive) {
+            int tmp1=com2int;
+            int tmp2=0;
             for(int i=1;i<5;i++) {
                 int next=com2int+i;
-                (next==5) ? (next=5) : (next=next%5);
-                if(community_2[next].isAlive) {
+                if (next>=5)
+                {  tmp2++;
+                    tmp2=com2int-tmp2;
+                    if(tmp2<0) {break;}
+                    if(community_2[tmp2].isAlive) {
+                        com2int=tmp2;
+                        break;
+                    }
+
+                }
+                else if(community_2[next].isAlive) {
                     com2int=next;
                     break;
                 }

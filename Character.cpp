@@ -22,7 +22,7 @@ Character::Character(const Character& character) {
     this->name=character.name;
     this->remainingHealth=character.remainingHealth;
     this->type=character.type;
-    this->healthHistory=character.healthHistory;
+ 
     int n=sizeof(character.healthHistory);
     this->healthHistory = new int[character.nMaxRounds+1];
     for (int i = 0; i < n; ++i){

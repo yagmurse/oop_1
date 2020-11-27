@@ -25,8 +25,8 @@ Character::Character(const Character& character) {
     this->remainingHealth=character.remainingHealth;
     this->type=character.type;
  
-    int n=sizeof(character.healthHistory);
-    this->healthHistory = new int[character.nMaxRounds+1];
+    int n=(character.nMaxRounds+1);
+    this->healthHistory = new int[n];
     for (int i = 0; i < n; ++i){
         this->healthHistory[i]=character.healthHistory[i];
     }

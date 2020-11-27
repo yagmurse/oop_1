@@ -305,7 +305,6 @@ bool is_war_end(ofstream& outFile) {
     }
 
     if(currentRound==maxRoundGiven) {
-        outFile << currentRound <<endl;
         outFile << "Draw" <<endl;
         outFile << currentRound <<endl;
         result=true;

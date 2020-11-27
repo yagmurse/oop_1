@@ -163,10 +163,10 @@ void war_begin(ofstream& outFile) {
                 int next=com1int+i;
                if (next>=5)
                {  tmp2++;
-               tmp2=com1int-tmp2;
-               if(tmp2<0) {break;}
-                   if(community_1[tmp2].isAlive) {
-                       com1int=tmp2;
+               tmp1=com1int-tmp2;
+               if(tmp1<0) {break;}
+                   if(community_1[tmp1].isAlive) {
+                       com1int=tmp1;
                        break;
                    }
 
@@ -184,10 +184,10 @@ void war_begin(ofstream& outFile) {
                 int next=com2int+i;
                 if (next>=5)
                 {  tmp2++;
-                    tmp2=com2int-tmp2;
-                    if(tmp2<0) {break;}
-                    if(community_2[tmp2].isAlive) {
-                        com2int=tmp2;
+                    tmp1=com2int-tmp2;
+                    if(tmp1<0) {break;}
+                    if(community_2[tmp1].isAlive) {
+                        com2int=tmp1;
                         break;
                     }
 
